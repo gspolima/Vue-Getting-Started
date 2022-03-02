@@ -20,9 +20,3 @@ export default {
   components: { HeaderBarBrand, HeaderBarLinks },
 };
 </script>
-
-<style lang="scss" scoped>
-.test {
-  color: yellow;
-}
-</style>
