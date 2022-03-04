@@ -5,56 +5,46 @@
     </div>
     <div class="columns">
       <div class="column is-3">
-        <header class="card-header">
-          <p class="card-header-title">heroes list</p>
-        </header>
-        <ul class="list is-hoverable">
-          <li v-for="hero in heroes" :key="hero.id">
-            <a
-              @click="displayDetails(hero)"
-              class="list-item"
-              :class="{ 'is-active': selectedHero === hero }"
-            >
-              <span>{{ hero.firstName }}</span>
-            </a>
-          </li>
-        </ul>
+        <div class="card" v-show="heroes.length">
+          <header class="card-header">
+            <p class="card-header-title">heroes list</p>
+          </header>
+          <ul class="list is-hoverable">
+            <li v-for="hero in heroes" :key="hero.id">
+              <a
+                class="list-item"
+                @click="selectHero(hero)"
+                :class="{ 'is-active': selectedHero === hero }"
+              >
+                <span>{{ hero.firstName }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="notification is-info" v-show="message">{{ message }}</div>
       </div>
-    </div>
-    <div v-if="typeof selectedHero !== 'undefined'" class="columns">
-      <div class="column is-3">
-        <header class="card-header">
-          <p class="card-header-title">{{ selectedHero.firstName }}</p>
-        </header>
-        <div class="card-content">
-          <div class="content">
-            <div class="field">
-              <label class="label" for="id">id</label>
-              <label class="input" id="id" readonly>
-                {{ selectedHero.id }}
-              </label>
-            </div>
-            <div class="field">
-              <label class="label" for="firstName">first name</label>
-              <input
-                class="input"
-                id="firstName"
-                v-model="selectedHero.firstName"
-              />
-            </div>
-            <div class="field">
-              <input
-                class="is-primary"
-                @click="showState"
-                v-model="hideLastNameAndDescription"
-                type="checkbox"
-                name="hideLastNameAndDescription"
-              />
-              <label for="hid eLastNameAndDescription">
-                Hide last name and description
-              </label>
-            </div>
-            <div v-show="hideLastNameAndDescription === false">
+
+      <div class="column is-4" v-if="selectedHero">
+        <div class="card">
+          <header class="card-header">
+            <p class="card-header-title">{{ fullName }}</p>
+          </header>
+          <div class="card-content">
+            <div class="content">
+              <div class="field">
+                <label class="label" for="id">id</label>
+                <label class="input" id="id" readonly>{{
+                  selectedHero.id
+                }}</label>
+              </div>
+              <div class="field">
+                <label class="label" for="firstName">first name</label>
+                <input
+                  class="input"
+                  id="firstName"
+                  v-model="selectedHero.firstName"
+                />
+              </div>
               <div class="field">
                 <label class="label" for="lastName">last name</label>
                 <input
@@ -73,6 +63,19 @@
               </div>
             </div>
           </div>
+          <footer class="card-footer">
+            <button
+              class="link card-footer-item cancel-button"
+              @click="cancelHero()"
+            >
+              <i class="fas fa-undo"></i>
+              <span>Cancel</span>
+            </button>
+            <button class="link card-footer-item" @click="saveHero()">
+              <i class="fas fa-save"></i>
+              <span>Save</span>
+            </button>
+          </footer>
         </div>
       </div>
     </div>
@@ -80,56 +83,93 @@
 </template>
 
 <script>
+const ourHeroes = [
+  {
+    id: 10,
+    firstName: 'Ella',
+    lastName: 'Papa',
+    description: 'fashionista',
+  },
+  {
+    id: 20,
+    firstName: 'Madelyn',
+    lastName: 'Papa',
+    description: 'the cat whisperer',
+  },
+  {
+    id: 30,
+    firstName: 'Haley',
+    lastName: 'Papa',
+    description: 'pen wielder',
+  },
+  {
+    id: 40,
+    firstName: 'Landon',
+    lastName: 'Papa',
+    description: 'arc trooper',
+  },
+];
+
 export default {
   name: 'Heroes',
   data() {
     return {
-      hideLastNameAndDescription: false,
-      selectedHero: undefined, // preferable over an empty object
-      heroes: [
-        {
-          id: 10,
-          firstName: 'Ella',
-          lastName: 'Papa',
-          description: 'fashionista',
-        },
-        {
-          id: 20,
-          firstName: 'Madelyn',
-          lastName: 'Papa',
-          description: 'the cat whisperer',
-        },
-        {
-          id: 30,
-          firstName: 'Haley',
-          lastName: 'Papa',
-          description: 'pen wielder',
-        },
-        {
-          id: 40,
-          firstName: 'Landon',
-          lastName: 'Papa',
-          description: 'arc trooper',
-        },
-        {
-          id: 50,
-          firstName: 'Gustavo',
-          lastName: 'Sampaio',
-          description: 'dragon slayer',
-        },
-      ],
+      heroes: ourHeroes,
+      selectedHero: undefined,
+      message: '',
     };
   },
-  methods: {
-    displayDetails(hero) {
-      console.log(hero);
-      this.selectedHero = hero;
+  computed: {
+    fullName: {
+      get() {
+        if (this.selectedHero) {
+          let name = this.selectedHero.firstName;
+          name += this.selectedHero.lastName
+            ? ` ${this.selectedHero.lastName}`
+            : '';
+          return name;
+        }
+        return '';
+      },
+      set(value) {
+        let names = value.split(' ');
+        this.selectedHero.firstName = names[0];
+        this.selectedHero.lastName =
+          names.length === 1 ? '' : names[names.length - 1];
+      },
+      reversedDescription: function() {
+        return this.selectedHero.description.reverse();
+      },
     },
-    showState() {
-      console.log(
-        `The checkbox for showing the last two fields was toggled to 
-        ${!this.hideLastNameAndDescription}`
-      );
+  },
+  methods: {
+    handleTheCapes(newValue) {
+      const value = parseInt(newValue, 10);
+      switch (value) {
+        case 0:
+          this.capeMessage = 'Where is my cape?';
+          break;
+        case 1:
+          this.capeMessage = 'One is all I need';
+          break;
+        case 2:
+          this.capeMessage = 'Alway have a spare';
+          break;
+        default:
+          this.capeMessage = 'You can never have enough capes';
+          break;
+      }
+    },
+    cancelHero() {
+      this.selectedHero = undefined;
+      this.message = '';
+    },
+    saveHero() {
+      // This only updates when you click the save button
+      this.message = JSON.stringify(this.selectedHero, null, '\n ');
+    },
+    selectHero(hero) {
+      this.selectedHero = hero;
     },
   },
 };
