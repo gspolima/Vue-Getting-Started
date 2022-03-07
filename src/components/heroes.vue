@@ -3,6 +3,7 @@
     <div class="section content-title-group">
       <h2 class="title">Heroes</h2>
     </div>
+    <div class="notification is-secondary">Random Fact: {{ randomFact }}</div>
     <div class="columns">
       <div class="column is-3">
         <div class="card" v-show="heroes.length">
@@ -59,7 +60,9 @@
                   class="input"
                   id="description"
                   v-model="selectedHero.description"
+                  :maxlength="descriptionCharLimit"
                 />
+                <p>{{ charactersUsed }}/{{ descriptionCharLimit }}</p>
               </div>
             </div>
           </div>
@@ -114,9 +117,11 @@ export default {
   name: 'Heroes',
   data() {
     return {
-      heroes: ourHeroes,
+      heroes: [],
       selectedHero: undefined,
       message: '',
+      descriptionCharLimit: 50,
+      randomFact: '',
     };
   },
   computed: {
@@ -137,10 +142,18 @@ export default {
         this.selectedHero.lastName =
           names.length === 1 ? '' : names[names.length - 1];
       },
-      reversedDescription: function() {
-        return this.selectedHero.description.reverse();
-      },
     },
+    reversedDescription: function() {
+      const desc = this.selectedHero.description;
+      return desc.reverse();
+    },
+    charactersUsed: function() {
+      return this.selectedHero.description.length;
+    },
+  },
+  created() {
+    this.loadHeroes();
+    this.loadRandomFact();
   },
   methods: {
     handleTheCapes(newValue) {
@@ -170,6 +183,33 @@ export default {
     },
     selectHero(hero) {
       this.selectedHero = hero;
+    },
+    async getHeroes() {
+      return new Promise(resolve => {
+        setTimeout(() => resolve(ourHeroes), 1500);
+      });
+    },
+    async loadHeroes() {
+      this.heroes = [];
+      this.message = 'Loading heroes. Please be patient.';
+      this.heroes = await this.getHeroes();
+      this.message = '';
+    },
+    getRandomFact() {
+      let request = new XMLHttpRequest();
+      request.open(
+        'GET',
+        'http://uselessfacts.jsph.pl/random.txt?language=en',
+        false
+      );
+      request.send(null);
+      return request.responseText;
+    },
+    loadRandomFact() {
+      let text = this.getRandomFact();
+      let index = text.indexOf('Source');
+      let trimmedText = text.slice(0, index);
+      this.randomFact = trimmedText;
     },
   },
 };
